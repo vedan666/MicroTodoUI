@@ -1,26 +1,36 @@
-# Stage 1: Build the React app
-FROM node:16.17.0-alpine as build
+# Build stage
+FROM node:16-alpine as build
 
-# Set the working directory
+# Create non-root user for build stage
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
+# Copy package files and install dependencies as root (required for some packages)
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
 
-# Copy the remaining application code
+# Copy source files and set ownership
 COPY . .
+RUN chown -R appuser:appgroup /app
 
-# Build the React app
+# Switch to non-root user for build
+USER appuser
 RUN npm run build
 
-# Stage 2: Create a minimal production-ready image
+# Production stage
 FROM nginx:alpine
 
-# Copy the built app from the 'build' stage
-COPY --from=build /app/build /usr/share/nginx/html
+# Create non-root user for nginx
+RUN addgroup -S nginxgroup && adduser -S nginxuser -G nginxgroup
 
-# Expose port 80
+# Copy nginx configuration and static files
+COPY --from=build /app/build /usr/share/nginx/html
+RUN chown -R nginxuser:nginxgroup /usr/share/nginx/html
+
+# Switch to non-root user
+USER nginxuser
+
 EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
