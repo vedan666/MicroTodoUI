@@ -3,6 +3,10 @@ name: Build and Push to ACR
 on:
   workflow_dispatch:  # Isse tum manually GitHub se trigger kar sakte ho
 
+permissions:
+  id-token: write
+  contents: read
+  
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
