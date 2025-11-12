@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: todo-ui-ingress
+spec:
+  ingressClassName: azure-application-gateway
+  rules:
+  - host: ui.memesforlife.sbs
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: todo-ui
+            port: 
+              number: 80
